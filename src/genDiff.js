@@ -6,10 +6,18 @@ const getObj1 = (file) => JSON.parse(file);
 const getKeys = (obj) => Object.keys(obj);
 
 export default function genDiff(path1, path2) {
+  const makePair = (key, value) => `${key}: ${value}`;
+
+  const makeComparingString = (key, value, sign = null) => {
+    const pair = makePair(key, value);
+    return !sign ? ` ${pair}` : ` ${sign} ${pair}`;
+  };
+
   const compareByKey = (obj1, obj2, key) => {
-    if (!Object.hasOwn(obj1, key)) return `+ ${key}: ${obj2[key]}`;
-    if (!Object.hasOwn(obj2, key)) return `- ${key}: ${obj1[key]}`;
-    return obj1[key] === obj2[key] ? `${key}: ${obj1[key]}` : `- ${key}: ${obj1[key]}\n + ${key}: ${obj2[key]}`;
+    if (!Object.hasOwn(obj1, key)) return makeComparingString(key, obj2[key], '+');
+    if (!Object.hasOwn(obj2, key)) return makeComparingString(key, obj1[key], '-');
+    if (obj1[key] === obj2[key]) return makeComparingString(key, obj1[key]);
+    return `${makeComparingString(key, obj1[key], '-')}\n ${makeComparingString(key, obj2[key], '+')}`;
   };
 
   const fixedPath1 = path.resolve(path1);

@@ -2,4 +2,7 @@ lint:
 	npx eslint .
 
 test:
-	echo 123
+	NODE_OPTIONS=--experimental-vm-modules npx jest
+
+install:
+	npm ci
