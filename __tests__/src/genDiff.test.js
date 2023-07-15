@@ -1,4 +1,5 @@
 import genDiff from '../../src/genDiff.js';
+import path from 'path';
 
 const config = {
   globals: {
@@ -8,11 +9,11 @@ const config = {
 
 export default config;
 
-const absPath1 = '/Users/magicbass/Desktop/frontend-project-46/fixtures/file1.json';
-const absPath2 = '/Users/magicbass/Desktop/frontend-project-46/fixtures/file2.json';
-
 const relPath1 = './fixtures/file1.json';
 const relPath2 = './fixtures/file2.json';
+
+const absPath1 = path.resolve(relPath1);
+const absPath2 = path.resolve(relPath2);
 
 const expected = `{
   - follow: false
@@ -22,7 +23,6 @@ const expected = `{
   + timeout: 20
   + verbose: true
 }`;
-
 
 test('gendiff main flow, absolute paths', () => {
   expect(genDiff(absPath1, absPath2)).toBe(expected);
