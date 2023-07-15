@@ -1,9 +1,9 @@
 import path from 'path';
 import genDiff from '../../src/genDiff.js';
-import expected from '../../fixtures/expected.js';
+import expected from '../../__fixtures__/expected.js';
 
-const relPath1 = './fixtures/file1.json';
-const relPath2 = './fixtures/file2.json';
+const relPath1 = './__fixtures__/file1.json';
+const relPath2 = './__fixtures__/file2.json';
 
 const absPath1 = path.resolve(relPath1);
 const absPath2 = path.resolve(relPath2);
