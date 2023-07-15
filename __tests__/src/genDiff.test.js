@@ -1,5 +1,6 @@
 import genDiff from '../../src/genDiff.js';
 import path from 'path';
+import expected from '../../fixtures/expected.js';
 
 const config = {
   globals: {
@@ -15,14 +16,6 @@ const relPath2 = './fixtures/file2.json';
 const absPath1 = path.resolve(relPath1);
 const absPath2 = path.resolve(relPath2);
 
-const expected = `{
-  - follow: false
-  host: hexlet.io
-  - proxy: 123.234.53.22
-  - timeout: 50
-  + timeout: 20
-  + verbose: true
-}`;
 
 test('gendiff main flow, absolute paths', () => {
   expect(genDiff(absPath1, absPath2)).toBe(expected);

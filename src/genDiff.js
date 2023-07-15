@@ -10,7 +10,7 @@ export default function genDiff(path1, path2) {
 
   const makeComparingString = (key, value, sign = null) => {
     const pair = makePair(key, value);
-    return !sign ? ` ${pair}` : ` ${sign} ${pair}`;
+    return !sign ? `   ${pair}` : ` ${sign} ${pair}`;
   };
 
   const compareByKey = (obj1, obj2, key) => {
