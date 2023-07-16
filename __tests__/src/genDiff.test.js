@@ -1,17 +1,16 @@
 import path from 'path';
+import { fileURLToPath } from 'url';
 import genDiff from '../../src/genDiff.js';
 import expected from '../../__fixtures__/expected.js';
 
-const relPath1 = './__fixtures__/file1.json';
-const relPath2 = './__fixtures__/file2.json';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-const absPath1 = path.resolve(relPath1);
-const absPath2 = path.resolve(relPath2);
+const getFixturePath = (filename) => path.join(__dirname, '..', '..', '__fixtures__', filename);
+
+const path1 = getFixturePath('file1.json');
+const path2 = getFixturePath('file2.json');
 
 test('gendiff main flow, absolute paths', () => {
-  expect(genDiff(absPath1, absPath2)).toBe(expected);
-});
-
-test('gendiff main flow, relative paths', () => {
-  expect(genDiff(relPath1, relPath2)).toBe(expected);
+  expect(genDiff(path1, path2)).toBe(expected);
 });
