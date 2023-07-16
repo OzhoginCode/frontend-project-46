@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import _ from 'lodash';
 
-const getObj1 = (file) => JSON.parse(file);
+const getObj = (file) => JSON.parse(file);
 const getKeys = (obj) => Object.keys(obj);
 
 const makePair = (key, value) => `${key}: ${value}`;
@@ -26,17 +26,17 @@ export default function genDiff(path1, path2) {
   const file1 = fs.readFileSync(fixedPath1, 'utf8');
   const file2 = fs.readFileSync(fixedPath2, 'utf8');
 
-  const json1 = getObj1(file1);
-  const json2 = getObj1(file2);
+  const obj1 = getObj(file1);
+  const obj2 = getObj(file2);
 
-  const file1Keys = getKeys(json1);
-  const file2Keys = getKeys(json2);
+  const file1Keys = getKeys(obj1);
+  const file2Keys = getKeys(obj2);
 
   const allKeys = _.union(file1Keys, file2Keys);
   const sortedKeys = _.sortBy(allKeys);
 
   const result = sortedKeys
-    .map((key) => compareByKey(json1, json2, key))
+    .map((key) => compareByKey(obj1, obj2, key))
     .join('\n ');
 
   const formatResult = `{\n ${result}\n}`;
