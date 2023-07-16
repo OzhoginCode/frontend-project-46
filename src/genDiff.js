@@ -1,8 +1,8 @@
 import fs from 'fs';
 import path from 'path';
 import _ from 'lodash';
+import parse from './parsers.js';
 
-const getObj = (file) => JSON.parse(file);
 const getKeys = (obj) => Object.keys(obj);
 
 const makePair = (key, value) => `${key}: ${value}`;
@@ -23,11 +23,14 @@ export default function genDiff(path1, path2) {
   const fixedPath1 = path.resolve(path1);
   const fixedPath2 = path.resolve(path2);
 
+  const extname1 = path.extname(fixedPath1);
+  const extname2 = path.extname(fixedPath2);
+
   const file1 = fs.readFileSync(fixedPath1, 'utf8');
   const file2 = fs.readFileSync(fixedPath2, 'utf8');
 
-  const obj1 = getObj(file1);
-  const obj2 = getObj(file2);
+  const obj1 = parse(file1, extname1);
+  const obj2 = parse(file2, extname2);
 
   const file1Keys = getKeys(obj1);
   const file2Keys = getKeys(obj2);

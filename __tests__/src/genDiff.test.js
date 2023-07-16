@@ -8,9 +8,16 @@ const __dirname = path.dirname(__filename);
 
 const getFixturePath = (filename) => path.join(__dirname, '..', '..', '__fixtures__', filename);
 
-const path1 = getFixturePath('file1.json');
-const path2 = getFixturePath('file2.json');
+const jsonPath1 = getFixturePath('file1.json');
+const jsonPath2 = getFixturePath('file2.json');
 
-test('gendiff main flow, absolute paths', () => {
-  expect(genDiff(path1, path2)).toBe(expected);
+test('gendiff main flow, json', () => {
+  expect(genDiff(jsonPath1, jsonPath2)).toBe(expected);
+});
+
+const yamlPath1 = getFixturePath('file1.yml');
+const yamlPath2 = getFixturePath('file2.yml');
+
+test('gendiff main flow, yaml', () => {
+  expect(genDiff(yamlPath1, yamlPath2)).toBe(expected);
 });
