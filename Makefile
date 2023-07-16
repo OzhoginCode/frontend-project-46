@@ -2,10 +2,13 @@ lint:
 	npx eslint .
 
 test:
-	npx jest
+	npm test
 
 test-watch:
-	npx jest --watch
+	npm test -- --watch
 
 install:
 	npm ci
+
+test-coverage:
+	npm test -- --coverage --coverageProvider=v8
