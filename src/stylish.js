@@ -4,15 +4,32 @@ const getKeys = (obj) => Object.keys(obj);
 
 const makePair = (key, value) => `${key}: ${value}`;
 
-const makeComparingString = (key, value, depth, sign = null) => {
+const getIndentSize = (depth) => 4 * depth;
+const getIndent = (depth) => ' '.repeat(getIndentSize(depth));
+const getSignIndent = (depth) => ' '.repeat(getIndentSize(depth) - 2);
+const getBracketIndent = (depth) => ' '.repeat(getIndentSize(depth) - 4);
+
+const formatKeyValuePair = (key, value, depth, sign = null) => {
   const pair = makePair(key, value);
-  const indent = ' '.repeat(4 * depth);
-  const signIndent = ' '.repeat(4 * depth - 2);
+  const indent = getIndent(depth);
+  const signIndent = getSignIndent(depth);
+
   return !sign ? `${indent}${pair}` : `${signIndent}${sign} ${pair}`;
 };
 
+const formatEntryWithStatus = (key, value, status, depth) => {
+  if (status === 'removed') {
+    return formatKeyValuePair(key, value, depth, '-');
+  }
+  if (status === 'added') {
+    return formatKeyValuePair(key, value, depth, '+');
+  }
+  return formatKeyValuePair(key, value, depth);
+};
+
 const addBrackets = (tree, depth) => {
-  const bracketIndent = ' '.repeat(4 * depth - 4);
+  const bracketIndent = getBracketIndent(depth);
+
   return `{\n${tree.join('\n')}\n${bracketIndent}}`;
 };
 
@@ -25,13 +42,7 @@ const stylish = (tree) => {
       const { key, status } = node[elem];
       const value = iter(node[elem].value, depth + 1);
 
-      if (status === 'removed') {
-        return makeComparingString(key, value, depth, '-');
-      }
-      if (status === 'added') {
-        return makeComparingString(key, value, depth, '+');
-      }
-      return makeComparingString(key, value, depth);
+      return formatEntryWithStatus(key, value, status, depth);
     });
 
     const formattedResult = addBrackets(result, depth);
