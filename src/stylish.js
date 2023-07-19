@@ -11,18 +11,20 @@ const makeComparingString = (key, value, depth, sign = null) => {
   return !sign ? `${indent}${pair}` : `${signIndent}${sign} ${pair}`;
 };
 
+const addBrackets = (tree, depth) => {
+  const bracketIndent = ' '.repeat(4 * depth - 4);
+  return `{\n${tree.join('\n')}\n${bracketIndent}}`;
+};
+
 const stylish = (tree) => {
   const iter = (node, depth = 1) => {
+    if (!_.isObject(node)) return node;
     const keys = getKeys(node);
 
     const result = keys.map((elem) => {
       const { key, status } = node[elem];
-      const value = _.isObject(node[elem].value)
-        ? iter(node[elem].value, depth + 1) : node[elem].value;
+      const value = iter(node[elem].value, depth + 1);
 
-      if (status === 'unchanged') {
-        return makeComparingString(key, value, depth);
-      }
       if (status === 'removed') {
         return makeComparingString(key, value, depth, '-');
       }
@@ -32,8 +34,8 @@ const stylish = (tree) => {
       return makeComparingString(key, value, depth);
     });
 
-    const bracketIndent = ' '.repeat(4 * depth - 4);
-    return `{\n${result.join('\n')}\n${bracketIndent}}`;
+    const formattedResult = addBrackets(result, depth);
+    return formattedResult;
   };
   return iter(tree);
 };
