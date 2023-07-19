@@ -2,26 +2,13 @@ import fs from 'fs';
 import path from 'path';
 import _ from 'lodash';
 import parse from './parsers.js';
+import stylish from './stylish.js';
 
 const getKeys = (obj) => Object.keys(obj);
 
-const makePair = (key, value) => `${key}: ${value}`;
+const formatResult = (tree, formatter) => formatter(tree);
 
-const makeComparingString = (key, value, depth, sign = null) => {
-  const pair = makePair(key, value);
-  const indent = ' '.repeat(4 * depth);
-  const signIndent = ' '.repeat(4 * depth - 2);
-  return !sign ? `${indent}${pair}` : `${signIndent}${sign} ${pair}`;
-};
-
-// const compareByKey = (obj1, obj2, key) => {
-//   if (!Object.hasOwn(obj1, key)) return makeComparingString(key, obj2[key], '+');
-//   if (!Object.hasOwn(obj2, key)) return makeComparingString(key, obj1[key], '-');
-//   if (obj1[key] === obj2[key]) return makeComparingString(key, obj1[key]);
-// return `${makeComparingString(key, obj1[key], '-')}\n ${makeComparingString(key, obj2[key], '+')}
-// };
-
-export default function genDiff(path1, path2) {
+export default function genDiff(path1, path2, formatter = stylish) {
   const fixedPath1 = path.resolve(path1);
   const fixedPath2 = path.resolve(path2);
 
@@ -34,8 +21,15 @@ export default function genDiff(path1, path2) {
   const object1 = parse(file1, extname1);
   const object2 = parse(file2, extname2);
 
-  const iter = (obj1, obj2, depth = 1) => {
-    if (!_.isObject(obj1) || !_.isObject(obj2)) return obj1;
+  const iter = (obj1, obj2, status = null) => {
+    const metaObj = {};
+
+    if (!_.isPlainObject(obj1) && !_.isPlainObject(obj2)) {
+      metaObj.key = obj1;
+      metaObj.value = obj2;
+      metaObj.status = status;
+      return metaObj;
+    }
 
     const obj1Keys = getKeys(obj1);
     const obj2Keys = getKeys(obj2);
@@ -43,31 +37,38 @@ export default function genDiff(path1, path2) {
     const allKeys = _.union(obj1Keys, obj2Keys);
     const sortedKeys = _.sortBy(allKeys);
 
-    const result = sortedKeys
-      .map((key) => {
-        const value1 = iter(obj1[key], obj1[key], depth + 1);
-        const value2 = iter(obj2[key], obj2[key], depth + 1);
+    const children = sortedKeys
+      .flatMap((key) => {
+        if (_.isPlainObject(obj1[key]) || _.isPlainObject(obj2[key])) {
+          if (_.isPlainObject(obj1[key]) && _.isPlainObject(obj2[key])) {
+            const value = iter(obj1[key], obj2[key]);
+            return iter(key, value, 'unchanged');
+          }
+          if (_.isPlainObject(obj1[key])) {
+            if (Object.hasOwn(obj2, key)) {
+              const value = iter(obj1[key], obj1[key]);
+              const result = [
+                iter(key, value, 'removed'),
+                iter(key, obj2[key], 'added')];
+              return result;
+            }
+            return iter(key, iter(obj1[key], obj1[key]), 'removed');
+          }
+          return iter(key, iter(obj2[key], obj2[key]), 'added');
+        }
 
-        if (_.isObject(obj1[key]) && _.isObject(obj2[key])) {
-          const value = iter(obj1[key], obj2[key], depth + 1);
-          return makeComparingString(key, value, depth);
+        if (Object.hasOwn(obj1, key) && Object.hasOwn(obj2, key)) {
+          if (obj1[key] === obj2[key]) return iter(key, obj1[key], 'unchanged');
+          const result = [
+            iter(key, obj1[key], 'removed'),
+            iter(key, obj2[key], 'added')];
+          return result;
         }
-        if (!Object.hasOwn(obj1, key)) {
-          return makeComparingString(key, value2, depth, '+');
-        }
-        if (!Object.hasOwn(obj2, key)) {
-          return makeComparingString(key, value1, depth, '-');
-        }
-        if (value1 === value2) {
-          return makeComparingString(key, value1, depth);
-        }
-        return `${makeComparingString(key, value1, depth, '-')}\n${makeComparingString(key, value2, depth, '+')}`;
-      })
-      .join('\n');
-    const signIndent = ' '.repeat(4 * (depth - 1));
-    const formatResult = `{\n${result}\n${signIndent}}`;
-
-    return formatResult;
+        if (!Object.hasOwn(obj1, key)) return iter(key, obj2[key], 'added');
+        return iter(key, obj1[key], 'removed');
+      }, 1);
+    return children;
   };
-  return iter(object1, object2);
+  const tree = iter(object1, object2);
+  return formatResult(tree, formatter);
 }
