@@ -4,6 +4,7 @@ import _ from 'lodash';
 import parse from './parsers.js';
 import stylish from './stylish.js';
 import plain from './plain.js';
+import json from './json.js';
 
 const getKeys = (obj) => Object.keys(obj);
 
@@ -19,6 +20,7 @@ const getAllSortedKeys = (obj1, obj2) => {
 const formatResult = (tree, formatter) => {
   if (formatter === 'stylish') return stylish(tree);
   if (formatter === 'plain') return plain(tree);
+  if (formatter === 'json') return json(tree);
   return null;
 };
 
@@ -27,12 +29,14 @@ const readFile = (filePath) => fs.readFileSync(filePath, 'utf8');
 
 const iter = (elem1, elem2, status, newValue) => {
   if (!_.isPlainObject(elem1) && !_.isPlainObject(elem2)) {
-    return {
+    const node = {
       key: elem1,
       value: elem2,
       status,
       newValue,
     };
+    if (_.isUndefined(newValue)) return { ...node, newValue };
+    return node;
   }
 
   const allSortedKeys = getAllSortedKeys(elem1, elem2);
