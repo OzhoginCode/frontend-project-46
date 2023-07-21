@@ -15,3 +15,6 @@ https://asciinema.org/a/xazHIPBUXd1S7MRRjnkxj9W1G
 
 nested objects:
 https://asciinema.org/a/sLQTOZE6nJaCh6Z7we8eOb4Ub
+
+plain:
+https://asciinema.org/a/Kr8RsJthNljZjh7d7MBjYcUel
