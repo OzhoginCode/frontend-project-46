@@ -2,9 +2,9 @@ import fs from 'fs';
 import path from 'path';
 import _ from 'lodash';
 import parse from './parsers.js';
-import stylish from './stylish.js';
-import plain from './plain.js';
-import json from './json.js';
+import stylish from './formatters/stylish.js';
+import plain from './formatters/plain.js';
+import json from './formatters/json.js';
 
 const getKeys = (obj) => Object.keys(obj);
 
