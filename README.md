@@ -18,3 +18,6 @@ https://asciinema.org/a/sLQTOZE6nJaCh6Z7we8eOb4Ub
 
 plain:
 https://asciinema.org/a/Kr8RsJthNljZjh7d7MBjYcUel
+
+json:
+https://asciinema.org/a/x8zv0sucEClzRsWGzrBGz60HH
