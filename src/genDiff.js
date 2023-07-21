@@ -6,69 +6,83 @@ import stylish from './stylish.js';
 
 const getKeys = (obj) => Object.keys(obj);
 
-const formatResult = (tree, formatter) => formatter(tree);
+const getAllSortedKeys = (obj1, obj2) => {
+  const elem1Keys = getKeys(obj1);
+  const elem2Keys = getKeys(obj2);
 
-export default function genDiff(path1, path2, formatter = stylish) {
-  const fixedPath1 = path.resolve(path1);
-  const fixedPath2 = path.resolve(path2);
+  const allKeys = _.union(elem1Keys, elem2Keys);
+  const sortedKeys = _.sortBy(allKeys);
+  return sortedKeys;
+};
+
+const formatResult = (tree, formatter) => {
+  if (formatter === 'stylish') return stylish(tree);
+  return null;
+};
+
+const getCorrectPath = (filePath) => path.resolve(filePath);
+const readFile = (filePath) => fs.readFileSync(filePath, 'utf8');
+
+const iter = (elem1, elem2, status) => {
+  if (!_.isPlainObject(elem1) && !_.isPlainObject(elem2)) {
+    return {
+      key: elem1,
+      value: elem2,
+      status,
+    };
+  }
+
+  const allSortedKeys = getAllSortedKeys(elem1, elem2);
+
+  const children = allSortedKeys
+    .flatMap((key) => {
+      const value1 = elem1[key];
+      const value2 = elem2[key];
+
+      if (_.isPlainObject(value1) || _.isPlainObject(value2)) {
+        if (_.isPlainObject(value1) && _.isPlainObject(value2)) {
+          const value = iter(value1, value2);
+          return iter(key, value, 'unchanged');
+        }
+        if (_.isPlainObject(value1)) {
+          if (Object.hasOwn(elem2, key)) {
+            const value = iter(value1, value1);
+            const result = [
+              iter(key, value, 'removed'),
+              iter(key, value2, 'added')];
+            return result;
+          }
+          return iter(key, iter(value1, value1), 'removed');
+        }
+        return iter(key, iter(value2, value2), 'added');
+      }
+
+      if (Object.hasOwn(elem1, key) && Object.hasOwn(elem2, key)) {
+        if (value1 === value2) return iter(key, value1, 'unchanged');
+        const result = [
+          iter(key, value1, 'removed'),
+          iter(key, value2, 'added')];
+        return result;
+      }
+      if (!Object.hasOwn(elem1, key)) return iter(key, value2, 'added');
+      return iter(key, value1, 'removed');
+    }, 1);
+  return children;
+};
+
+export default function genDiff(path1, path2, formatter = 'stylish') {
+  const fixedPath1 = getCorrectPath(path1);
+  const fixedPath2 = getCorrectPath(path2);
 
   const extname1 = path.extname(fixedPath1);
   const extname2 = path.extname(fixedPath2);
 
-  const file1 = fs.readFileSync(fixedPath1, 'utf8');
-  const file2 = fs.readFileSync(fixedPath2, 'utf8');
+  const file1 = readFile(fixedPath1);
+  const file2 = readFile(fixedPath2);
 
   const object1 = parse(file1, extname1);
   const object2 = parse(file2, extname2);
 
-  const iter = (obj1, obj2, status = null) => {
-    const metaObj = {};
-
-    if (!_.isPlainObject(obj1) && !_.isPlainObject(obj2)) {
-      metaObj.key = obj1;
-      metaObj.value = obj2;
-      metaObj.status = status;
-      return metaObj;
-    }
-
-    const obj1Keys = getKeys(obj1);
-    const obj2Keys = getKeys(obj2);
-
-    const allKeys = _.union(obj1Keys, obj2Keys);
-    const sortedKeys = _.sortBy(allKeys);
-
-    const children = sortedKeys
-      .flatMap((key) => {
-        if (_.isPlainObject(obj1[key]) || _.isPlainObject(obj2[key])) {
-          if (_.isPlainObject(obj1[key]) && _.isPlainObject(obj2[key])) {
-            const value = iter(obj1[key], obj2[key]);
-            return iter(key, value, 'unchanged');
-          }
-          if (_.isPlainObject(obj1[key])) {
-            if (Object.hasOwn(obj2, key)) {
-              const value = iter(obj1[key], obj1[key]);
-              const result = [
-                iter(key, value, 'removed'),
-                iter(key, obj2[key], 'added')];
-              return result;
-            }
-            return iter(key, iter(obj1[key], obj1[key]), 'removed');
-          }
-          return iter(key, iter(obj2[key], obj2[key]), 'added');
-        }
-
-        if (Object.hasOwn(obj1, key) && Object.hasOwn(obj2, key)) {
-          if (obj1[key] === obj2[key]) return iter(key, obj1[key], 'unchanged');
-          const result = [
-            iter(key, obj1[key], 'removed'),
-            iter(key, obj2[key], 'added')];
-          return result;
-        }
-        if (!Object.hasOwn(obj1, key)) return iter(key, obj2[key], 'added');
-        return iter(key, obj1[key], 'removed');
-      }, 1);
-    return children;
-  };
   const tree = iter(object1, object2);
   return formatResult(tree, formatter);
 }
