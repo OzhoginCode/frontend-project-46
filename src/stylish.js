@@ -23,12 +23,16 @@ const addBrackets = (tree, depth) => {
   return `{\n${tree.join('\n')}\n${bracketIndent}}`;
 };
 
-const formatPairWithStatus = (key, value, status, depth) => {
+const formatPairWithStatus = (key, value, status, depth, newValue) => {
   if (status === 'removed') {
     return formatKeyValuePair(key, value, depth, '-');
   }
   if (status === 'added') {
     return formatKeyValuePair(key, value, depth, '+');
+  }
+  if (status === 'changed') {
+    const result = `${formatKeyValuePair(key, value, depth, '-')}\n${formatKeyValuePair(key, newValue, depth, '+')}`;
+    return result;
   }
   return formatKeyValuePair(key, value, depth);
 };
@@ -39,10 +43,10 @@ const stylish = (tree) => {
     const keys = getKeys(node);
 
     const result = keys.map((elem) => {
-      const { key, status } = node[elem];
+      const { key, status, newValue } = node[elem];
       const value = iter(node[elem].value, depth + 1);
 
-      return formatPairWithStatus(key, value, status, depth);
+      return formatPairWithStatus(key, value, status, depth, newValue);
     });
 
     const formattedResult = addBrackets(result, depth);

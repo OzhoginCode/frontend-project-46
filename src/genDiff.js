@@ -3,6 +3,7 @@ import path from 'path';
 import _ from 'lodash';
 import parse from './parsers.js';
 import stylish from './stylish.js';
+import plain from './plain.js';
 
 const getKeys = (obj) => Object.keys(obj);
 
@@ -17,18 +18,20 @@ const getAllSortedKeys = (obj1, obj2) => {
 
 const formatResult = (tree, formatter) => {
   if (formatter === 'stylish') return stylish(tree);
+  if (formatter === 'plain') return plain(tree);
   return null;
 };
 
 const getCorrectPath = (filePath) => path.resolve(filePath);
 const readFile = (filePath) => fs.readFileSync(filePath, 'utf8');
 
-const iter = (elem1, elem2, status) => {
+const iter = (elem1, elem2, status, newValue) => {
   if (!_.isPlainObject(elem1) && !_.isPlainObject(elem2)) {
     return {
       key: elem1,
       value: elem2,
       status,
+      newValue,
     };
   }
 
@@ -47,10 +50,7 @@ const iter = (elem1, elem2, status) => {
         if (_.isPlainObject(value1)) {
           if (Object.hasOwn(elem2, key)) {
             const value = iter(value1, value1);
-            const result = [
-              iter(key, value, 'removed'),
-              iter(key, value2, 'added')];
-            return result;
+            return iter(key, value, 'changed', value2);
           }
           return iter(key, iter(value1, value1), 'removed');
         }
@@ -59,10 +59,7 @@ const iter = (elem1, elem2, status) => {
 
       if (Object.hasOwn(elem1, key) && Object.hasOwn(elem2, key)) {
         if (value1 === value2) return iter(key, value1, 'unchanged');
-        const result = [
-          iter(key, value1, 'removed'),
-          iter(key, value2, 'added')];
-        return result;
+        return iter(key, value1, 'changed', value2);
       }
       if (!Object.hasOwn(elem1, key)) return iter(key, value2, 'added');
       return iter(key, value1, 'removed');
@@ -70,7 +67,7 @@ const iter = (elem1, elem2, status) => {
   return children;
 };
 
-export default function genDiff(path1, path2, formatter = 'stylish') {
+export default function genDiff(path1, path2, formatName = 'stylish') {
   const fixedPath1 = getCorrectPath(path1);
   const fixedPath2 = getCorrectPath(path2);
 
@@ -84,5 +81,5 @@ export default function genDiff(path1, path2, formatter = 'stylish') {
   const object2 = parse(file2, extname2);
 
   const tree = iter(object1, object2);
-  return formatResult(tree, formatter);
+  return formatResult(tree, formatName);
 }
