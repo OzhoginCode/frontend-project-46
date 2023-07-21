@@ -35,7 +35,7 @@ const iter = (elem1, elem2, status, newValue) => {
       status,
       newValue,
     };
-    if (_.isUndefined(newValue)) return { ...node, newValue };
+    if (!_.isUndefined(newValue)) return { ...node, newValue };
     return node;
   }
 
@@ -57,6 +57,10 @@ const iter = (elem1, elem2, status, newValue) => {
             return iter(key, value, 'changed', value2);
           }
           return iter(key, iter(value1, value1), 'removed');
+        }
+        if (Object.hasOwn(elem1, key)) {
+          const value = iter(value2, value2);
+          return iter(key, value1, 'changed', value);
         }
         return iter(key, iter(value2, value2), 'added');
       }

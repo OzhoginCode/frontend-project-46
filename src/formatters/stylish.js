@@ -43,8 +43,9 @@ const stylish = (tree) => {
     const keys = getKeys(node);
 
     const result = keys.map((elem) => {
-      const { key, status, newValue } = node[elem];
+      const { key, status } = node[elem];
       const value = iter(node[elem].value, depth + 1);
+      const newValue = iter(node[elem].newValue, depth + 1);
 
       return formatPairWithStatus(key, value, status, depth, newValue);
     });
