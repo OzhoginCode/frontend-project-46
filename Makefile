@@ -15,3 +15,6 @@ test-coverage:
 
 gendiff:
 	node gendiff.js
+
+publish:
+	npm publish
